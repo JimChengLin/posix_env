@@ -6,8 +6,18 @@
 
 namespace penv {
     class PosixWritableFile : public WritableFile {
+    private:
+        std::string fname_;
+        size_t len_;
+        int fd_;
+
     public:
-        ~PosixWritableFile() override = default;
+        PosixWritableFile(std::string fname, size_t len, int fd)
+                : fname_(std::move(fname)),
+                  len_(len),
+                  fd_(fd) {}
+
+        ~PosixWritableFile() override;
 
     public:
         void Write(const Slice & data) override;

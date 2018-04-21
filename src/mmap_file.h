@@ -19,7 +19,7 @@ namespace penv {
                   len_(len),
                   fd_(fd) {}
 
-        ~PosixMmapFile() override = default;
+        ~PosixMmapFile() override;
 
     public:
         void * Base() override {

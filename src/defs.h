@@ -25,4 +25,8 @@
 #endif
 #endif // defined(PENV_OS_MACOSX)
 
+#define PENV_S1(x) #x
+#define PENV_S2(x) PENV_S1(x)
+#define PENV_EXCEPTION_INFO std::string(__PRETTY_FUNCTION__) + " at line " PENV_S2(__LINE__)
+
 #endif //POSIX_ENV_DEFS_H

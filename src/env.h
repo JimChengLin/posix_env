@@ -18,7 +18,7 @@
  * 时间: 2018夏初
  * 发布协议: AGPL
  *
- * 注意: 全组件使用异常替代状态码
+ * 注意: 全组件使用 **异常** 替代 **状态码**
  */
 
 #include <memory>
@@ -36,12 +36,11 @@ namespace penv {
 
     class Env {
     public:
+        static Env * Default();
+
         Env() = default;
 
         virtual ~Env() = default;
-
-    public:
-        static Env * Default();
 
     public:
         virtual size_t GetFileSize(const std::string & fname) = 0;
@@ -90,7 +89,7 @@ namespace penv {
         virtual void Prefetch(size_t offset, size_t n) = 0;
 
         enum AccessPattern {
-            NORMAL, RANDOM, SEQUENTIAL, WILLNEED, DONTNEED
+            NORMAL, SEQUENTIAL, RANDOM, NOREUSE, WILLNEED, DONTNEED
         };
 
         virtual void Hint(AccessPattern hint) = 0;
@@ -116,14 +115,13 @@ namespace penv {
         virtual size_t GetFileSize() const = 0;
 
         // These values match Linux definition
-        // https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/fcntl.h#n56
         enum WriteLifeTimeHint {
-            WLTH_NOT_SET = 0, // No hint information set
-            WLTH_NONE,        // No hints about write life time
-            WLTH_SHORT,       // Data written has a short life time
-            WLTH_MEDIUM,      // Data written has a medium life time
-            WLTH_LONG,        // Data written has a long life time
-            WLTH_EXTREME,     // Data written has an extremely long life time
+            WLTH_NOT_SET = 0,
+            WLTH_NONE,
+            WLTH_SHORT,
+            WLTH_MEDIUM,
+            WLTH_LONG,
+            WLTH_EXTREME
         };
 
         virtual void Hint(WriteLifeTimeHint hint) = 0;
@@ -146,12 +144,16 @@ namespace penv {
 
         virtual const void * Base() const = 0;
 
+        enum {
+            kMinSize = 4096
+        };
+
         virtual size_t GetFileSize() const = 0;
 
         virtual void Resize(size_t n) = 0;
 
         enum AccessPattern {
-            NORMAL, RANDOM, SEQUENTIAL, WILLNEED, DONTNEED
+            NORMAL, SEQUENTIAL, RANDOM, WILLNEED, DONTNEED
         };
 
         virtual void Hint(AccessPattern hint) = 0;

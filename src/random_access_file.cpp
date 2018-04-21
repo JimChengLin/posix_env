@@ -5,13 +5,17 @@
 #include "defs.h"
 #include "random_access_file.h"
 
-// For non linux platform, the following macros are used only as place holder.
-#if !defined(PENV_OS_LINUX)
-#define POSIX_FADV_NORMAL 0     /* [MC1] no further special treatment */
-#define POSIX_FADV_RANDOM 1     /* [MC1] expect random page refs */
-#define POSIX_FADV_SEQUENTIAL 2 /* [MC1] expect sequential page refs */
-#define POSIX_FADV_WILLNEED 3   /* [MC1] will need these pages */
-#define POSIX_FADV_DONTNEED 4   /* [MC1] don't need these pages */
+#define IO_EXCEPTION(f) std::runtime_error("IO:" + PENV_EXCEPTION_INFO + " | " + strerror(errno) + " | " + (f))
+
+#if !defined(POSIX_FADV_NORMAL)
+#define POSIX_FADV_NORMAL
+#define POSIX_FADV_SEQUENTIAL
+#define POSIX_FADV_RANDOM
+#define POSIX_FADV_NOREUSE
+#define POSIX_FADV_WILLNEED
+#define POSIX_FADV_DONTNEED
+
+#define posix_fadvise(fd, offset, len, advice) 0
 #endif
 
 namespace penv {
@@ -36,10 +40,7 @@ namespace penv {
             left -= r;
         }
         if (r < 0) {
-            throw std::runtime_error("IO: While pread offset " + std::to_string(offset)
-                                     + " len " + std::to_string(n) + ' '
-                                     + fname_ + ' '
-                                     + std::to_string(errno));
+            throw IO_EXCEPTION(fname_);
         }
     }
 
@@ -54,40 +55,30 @@ namespace penv {
         r = fcntl(fd_, F_RDADVISE, &advice);
 #endif
         if (r == -1) {
-            throw std::runtime_error("IO: While prefetch offset " + std::to_string(offset)
-                                     + " len " + std::to_string(n) + ' '
-                                     + fname_ + ' '
-                                     + std::to_string(errno));
+            throw IO_EXCEPTION(fname_);
         }
-    }
-
-    // A wrapper for fadvise, if the platform doesn't support fadvise,
-    // it will simply return 0.
-    inline static int Fadvise(int fd, off_t offset, size_t len, int advice) {
-#if defined(PENV_OS_LINUX)
-        return posix_fadvise(fd, offset, len, advice);
-#else
-        return 0;
-#endif
     }
 
     void PosixRandomAccessFile::Hint(AccessPattern hint) {
         switch (hint) {
             case NORMAL:
-                Fadvise(fd_, 0, 0, POSIX_FADV_NORMAL);
-                break;
-            case RANDOM:
-                Fadvise(fd_, 0, 0, POSIX_FADV_RANDOM);
+                posix_fadvise(fd_, 0, 0, POSIX_FADV_NORMAL);
                 break;
             case SEQUENTIAL:
-                Fadvise(fd_, 0, 0, POSIX_FADV_SEQUENTIAL);
+                posix_fadvise(fd_, 0, 0, POSIX_FADV_SEQUENTIAL);
+                break;
+            case RANDOM:
+                posix_fadvise(fd_, 0, 0, POSIX_FADV_RANDOM);
+                break;
+            case NOREUSE:
+                posix_fadvise(fd_, 0, 0, POSIX_FADV_NOREUSE);
                 break;
             case WILLNEED:
-                Fadvise(fd_, 0, 0, POSIX_FADV_WILLNEED);
+                posix_fadvise(fd_, 0, 0, POSIX_FADV_WILLNEED);
                 break;
             default:
                 assert(hint == DONTNEED);
-                Fadvise(fd_, 0, 0, POSIX_FADV_DONTNEED);
+                posix_fadvise(fd_, 0, 0, POSIX_FADV_DONTNEED);
                 break;
         }
     }
