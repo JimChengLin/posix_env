@@ -43,10 +43,13 @@ namespace penv {
     public:
         static Env * Default();
 
-    public:
         virtual size_t GetFileSize(const std::string & fname) = 0;
 
     public:
+        enum {
+            kPermission = 0644
+        };
+
         virtual void OpenSequentialFile(const std::string & fname,
                                         std::unique_ptr<SequentialFile> * result) = 0;
 

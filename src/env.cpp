@@ -39,7 +39,7 @@ namespace penv {
             int flags = O_RDONLY;
 
             do {
-                fd = open(fname.c_str(), flags, 0644 /* 权限 */);
+                fd = open(fname.c_str(), flags, kPermission);
             } while (fd < 0 && errno == EINTR);
             if (fd < 0) {
                 throw IO_EXCEPTION(fname);
@@ -63,7 +63,7 @@ namespace penv {
             int flags = O_RDONLY;
 
             do {
-                fd = open(fname.c_str(), flags, 0644 /* 权限 */);
+                fd = open(fname.c_str(), flags, kPermission);
             } while (fd < 0 && errno == EINTR);
             if (fd < 0) {
                 throw IO_EXCEPTION(fname);
@@ -79,15 +79,15 @@ namespace penv {
             int flags;
             size_t filesize;
             if (reopen) {
-                flags = O_CREAT | O_APPEND | O_WRONLY;
+                flags = O_CREAT | O_WRONLY | O_APPEND;
                 filesize = Default()->GetFileSize(fname);
             } else {
-                flags = O_CREAT | O_TRUNC | O_WRONLY;
+                flags = O_CREAT | O_WRONLY | O_TRUNC;
                 filesize = 0;
             }
 
             do {
-                fd = open(fname.c_str(), flags, 0644 /* 权限 */);
+                fd = open(fname.c_str(), flags, kPermission);
             } while (fd < 0 && errno == EINTR);
             if (fd < 0) {
                 throw IO_EXCEPTION(fname);
@@ -113,15 +113,15 @@ namespace penv {
             int flags;
             size_t len;
             if (reopen) {
-                flags = O_CREAT | O_APPEND | O_RDWR;
+                flags = O_CREAT | O_RDWR | O_APPEND;
                 len = Default()->GetFileSize(fname);
             } else {
-                flags = O_CREAT | O_TRUNC | O_RDWR;
+                flags = O_CREAT | O_RDWR | O_TRUNC;
                 len = MmapFile::kMinSize;
             }
 
             do {
-                fd = open(fname.c_str(), flags, 0644 /* 权限 */);
+                fd = open(fname.c_str(), flags, kPermission);
             } while (fd < 0 && errno == EINTR);
             if (fd < 0) {
                 throw IO_EXCEPTION(fname);
