@@ -7,7 +7,7 @@
 
 #define IO_EXCEPTION(f) std::runtime_error("IO:" + PENV_EXCEPTION_INFO + " | " + strerror(errno) + " | " + (f))
 
-#if !defined(POSIX_FADV_NORMAL)
+#if defined(PENV_OS_MACOSX)
 #define POSIX_FADV_NORMAL
 #define POSIX_FADV_SEQUENTIAL
 #define POSIX_FADV_RANDOM
@@ -24,23 +24,19 @@ namespace penv {
     }
 
     void PosixRandomAccessFile::ReadAt(size_t offset, size_t n, char * scratch) const {
-        ssize_t r = -1;
         size_t left = n;
         char * ptr = scratch;
-        while (left > 0) {
-            r = pread(fd_, ptr, left, static_cast<off_t>(offset));
-            if (r <= 0) {
-                if (r == -1 && errno == EINTR) {
+        while (left != 0) {
+            ssize_t done = pread(fd_, ptr, left, static_cast<off_t>(offset));
+            if (done < 0) {
+                if (errno == EINTR) {
                     continue;
                 }
-                break;
+                throw IO_EXCEPTION(fname_);
             }
-            ptr += r;
-            offset += r;
-            left -= r;
-        }
-        if (r < 0) {
-            throw IO_EXCEPTION(fname_);
+            left -= done;
+            ptr += done;
+            offset += done;
         }
     }
 

@@ -75,7 +75,25 @@ namespace penv {
         static void OpenWritableFile(const std::string & fname,
                                      std::unique_ptr<WritableFile> * result,
                                      bool reopen) {
+            int fd;
+            int flags;
+            size_t filesize;
+            if (reopen) {
+                flags = O_CREAT | O_APPEND | O_WRONLY;
+                filesize = Default()->GetFileSize(fname);
+            } else {
+                flags = O_CREAT | O_TRUNC | O_WRONLY;
+                filesize = 0;
+            }
 
+            do {
+                fd = open(fname.c_str(), flags, 0644 /* 权限 */);
+            } while (fd < 0 && errno == EINTR);
+            if (fd < 0) {
+                throw IO_EXCEPTION(fname);
+            }
+            SetCLOEXEC(fd);
+            *result = std::make_unique<PosixWritableFile>(fname, filesize, fd);
         }
 
         void OpenWritableFile(const std::string & fname,
@@ -109,6 +127,13 @@ namespace penv {
                 throw IO_EXCEPTION(fname);
             }
             SetCLOEXEC(fd);
+
+            if (!reopen) {
+                int r = ftruncate(fd, MmapFile::kMinSize);
+                if (r != 0) {
+                    throw IO_EXCEPTION(fname);
+                }
+            }
 
             void * base = mmap(nullptr, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
             if (base == MAP_FAILED) {

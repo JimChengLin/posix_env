@@ -36,11 +36,12 @@ namespace penv {
 
     class Env {
     public:
-        static Env * Default();
-
         Env() = default;
 
         virtual ~Env() = default;
+
+    public:
+        static Env * Default();
 
     public:
         virtual size_t GetFileSize(const std::string & fname) = 0;
@@ -105,8 +106,6 @@ namespace penv {
         virtual void Write(const Slice & data) = 0;
 
         virtual void Truncate(size_t n) = 0;
-
-        virtual void Flush() = 0;
 
         virtual void Sync() = 0;
 

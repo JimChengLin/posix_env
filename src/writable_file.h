@@ -30,8 +30,6 @@ namespace penv {
 
         void Truncate(size_t n) override;
 
-        void Flush() override;
-
         void Sync() override;
 
         size_t GetFileSize() const override {

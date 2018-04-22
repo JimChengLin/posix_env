@@ -12,15 +12,15 @@ namespace penv {
     PosixWritableFile::~PosixWritableFile() {
         if (last_preallocated_block_ > 0) {
             ftruncate(fd_, static_cast<off_t>(filesize_));
+#if defined(OS_LINUX)
             struct stat sbuf;
             int r = fstat(fd_, &sbuf);
             if (r == 0 &&
                 (sbuf.st_size + sbuf.st_blksize - 1) / sbuf.st_blksize != sbuf.st_blocks / (sbuf.st_blksize / 512)) {
-#if defined(OS_LINUX)
                 fallocate(fd_, FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE, filesize_,
-                          kPreallocationBlockSize * last_preallocated_block_- filesize_);
-#endif
+                          kPreallocationBlockSize * last_preallocated_block_ - filesize_);
             }
+#endif
         }
         close(fd_);
     }
@@ -51,9 +51,6 @@ namespace penv {
         }
     }
 
-    void PosixWritableFile::Flush() {
-    }
-
     void PosixWritableFile::Sync() {
         if (fsync(fd_) < 0) {
             throw IO_EXCEPTION(fname_);
@@ -79,7 +76,7 @@ namespace penv {
         size_t new_last_preallocated_block = (offset + n + kPreallocationBlockSize - 1) / kPreallocationBlockSize;
         if (new_last_preallocated_block > last_preallocated_block_) {
             Allocate(kPreallocationBlockSize * last_preallocated_block_,
-                     kPreallocationBlockSize * new_last_preallocated_block - last_preallocated_block_);
+                     kPreallocationBlockSize * (new_last_preallocated_block - last_preallocated_block_));
             last_preallocated_block_ = new_last_preallocated_block;
         }
     }
