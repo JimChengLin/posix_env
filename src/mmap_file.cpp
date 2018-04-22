@@ -16,19 +16,16 @@ namespace penv {
 
     void PosixMmapFile::Resize(size_t n) {
         int r;
-#if defined(PENV_OS_MACOSX) || !defined(FALLOC_FL_KEEP_SIZE)
+#if defined(PENV_OS_MACOSX)
         r = ftruncate(fd_, static_cast<off_t>(n));
 #else
         r = fallocate(fd_, 0, 0, static_cast<off_t>(n));
-        if (r != 0) {
-            r = posix_fallocate(fd_, 0, static_cast<off_t>(n));
-        }
 #endif
         if (r != 0) {
             throw IO_EXCEPTION(fname_);
         }
 
-#if !defined(PENV_OS_LINUX)
+#if defined(PENV_OS_MACOSX)
         if (munmap(base_, len_) != 0) {
             throw IO_EXCEPTION(fname_);
         }

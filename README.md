@@ -1,3 +1,3 @@
 # posix_env
 
-Read src/*.h
+Read src/env.h

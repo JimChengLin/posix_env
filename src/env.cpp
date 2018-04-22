@@ -37,7 +37,6 @@ namespace penv {
                                 std::unique_ptr<SequentialFile> * result) override {
             int fd;
             int flags = O_RDONLY;
-            FILE * file = nullptr;
 
             do {
                 fd = open(fname.c_str(), flags, 0644 /* 权限 */);
@@ -47,6 +46,7 @@ namespace penv {
             }
             SetCLOEXEC(fd);
 
+            FILE * file;
             do {
                 file = fdopen(fd, "r");
             } while (file == nullptr && errno == EINTR);
@@ -92,7 +92,15 @@ namespace penv {
                                  std::unique_ptr<MmapFile> * result,
                                  bool reopen) {
             int fd;
-            int flags = (reopen ? (O_CREAT | O_APPEND) : (O_CREAT | O_TRUNC)) | O_RDWR;
+            int flags;
+            size_t len;
+            if (reopen) {
+                flags = O_CREAT | O_APPEND | O_RDWR;
+                len = Default()->GetFileSize(fname);
+            } else {
+                flags = O_CREAT | O_TRUNC | O_RDWR;
+                len = MmapFile::kMinSize;
+            }
 
             do {
                 fd = open(fname.c_str(), flags, 0644 /* 权限 */);
@@ -102,7 +110,6 @@ namespace penv {
             }
             SetCLOEXEC(fd);
 
-            size_t len = reopen ? Default()->GetFileSize(fname) : MmapFile::kMinSize;
             void * base = mmap(nullptr, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
             if (base == MAP_FAILED) {
                 throw IO_EXCEPTION(fname);

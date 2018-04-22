@@ -7,14 +7,20 @@
 namespace penv {
     class PosixWritableFile : public WritableFile {
     private:
+        enum {
+            kPreallocationBlockSize = 4 * 1024 * 1024
+        };
+
         std::string fname_;
-        size_t len_;
+        size_t filesize_;
+        size_t last_preallocated_block_;
         int fd_;
 
     public:
-        PosixWritableFile(std::string fname, size_t len, int fd)
+        PosixWritableFile(std::string fname, size_t filesize, int fd)
                 : fname_(std::move(fname)),
-                  len_(len),
+                  filesize_(filesize),
+                  last_preallocated_block_(0),
                   fd_(fd) {}
 
         ~PosixWritableFile() override;
@@ -22,15 +28,15 @@ namespace penv {
     public:
         void Write(const Slice & data) override;
 
-        void WriteAt(size_t offset, const Slice & data) override;
-
         void Truncate(size_t n) override;
 
         void Flush() override;
 
         void Sync() override;
 
-        size_t GetFileSize() const override;
+        size_t GetFileSize() const override {
+            return filesize_;
+        }
 
         void Hint(WriteLifeTimeHint hint) override;
 

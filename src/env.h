@@ -104,8 +104,6 @@ namespace penv {
     public:
         virtual void Write(const Slice & data) = 0;
 
-        virtual void WriteAt(size_t offset, const Slice & data) = 0;
-
         virtual void Truncate(size_t n) = 0;
 
         virtual void Flush() = 0;
