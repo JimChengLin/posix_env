@@ -12,7 +12,7 @@ namespace penv {
     PosixWritableFile::~PosixWritableFile() {
         if (last_preallocated_block_ > 0) {
             ftruncate(fd_, static_cast<off_t>(filesize_));
-#if defined(OS_LINUX)
+#if defined(PENV_OS_LINUX)
             struct stat sbuf;
             int r = fstat(fd_, &sbuf);
             if (r == 0 &&
@@ -44,7 +44,7 @@ namespace penv {
 
     void PosixWritableFile::Truncate(size_t n) {
         int r = ftruncate(fd_, static_cast<off_t>(n));
-        if (r < 0) {
+        if (r != 0) {
             throw IO_EXCEPTION(fname_);
         } else {
             filesize_ = n;
@@ -52,19 +52,19 @@ namespace penv {
     }
 
     void PosixWritableFile::Sync() {
-        if (fsync(fd_) < 0) {
+        if (fsync(fd_) != 0) {
             throw IO_EXCEPTION(fname_);
         }
     }
 
     void PosixWritableFile::Hint(WriteLifeTimeHint hint) {
-#if defined(OS_LINUX)
+#if defined(PENV_OS_LINUX) && defined(F_SET_RW_HINT)
         fcntl(fd_, F_SET_RW_HINT, &hint);
 #endif
     }
 
     void PosixWritableFile::RangeSync(size_t offset, size_t n) {
-#if defined(OS_LINUX)
+#if defined(PENV_OS_LINUX)
         int r = sync_file_range(fd_, static_cast<off_t>(offset), static_cast<off_t>(n), SYNC_FILE_RANGE_WRITE);
         if (r != 0) {
             throw IO_EXCEPTION(fname_);
@@ -82,7 +82,7 @@ namespace penv {
     }
 
     void PosixWritableFile::Allocate(size_t offset, size_t n) {
-#if defined(OS_LINUX)
+#if defined(PENV_OS_LINUX)
         int r = fallocate(fd_, 0, static_cast<off_t>(offset), static_cast<off_t>(n));
         if (r != 0) {
             throw IO_EXCEPTION(fname_);

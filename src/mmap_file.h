@@ -36,6 +36,8 @@ namespace penv {
 
         void Resize(size_t n) override;
 
+        void Sync() override;
+
         void Hint(AccessPattern hint) override;
     };
 }

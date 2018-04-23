@@ -39,6 +39,12 @@ namespace penv {
         }
     }
 
+    void PosixMmapFile::Sync() {
+        if (msync(base_, len_, MS_SYNC) != 0) {
+            throw IO_EXCEPTION(fname_);
+        }
+    }
+
     void PosixMmapFile::Hint(AccessPattern hint) {
         switch (hint) {
             case NORMAL:

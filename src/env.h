@@ -152,6 +152,8 @@ namespace penv {
 
         virtual void Resize(size_t n) = 0;
 
+        virtual void Sync() = 0;
+
         enum AccessPattern {
             NORMAL, SEQUENTIAL, RANDOM, WILLNEED, DONTNEED
         };

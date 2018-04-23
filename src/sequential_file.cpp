@@ -25,7 +25,7 @@ namespace penv {
     }
 
     void PosixSequentialFile::Skip(size_t n) {
-        if (fseek(file_, static_cast<long int>(n), SEEK_CUR)) {
+        if (fseek(file_, static_cast<long int>(n), SEEK_CUR) != 0) {
             throw IO_EXCEPTION(fname_);
         }
     }

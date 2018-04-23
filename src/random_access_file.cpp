@@ -50,7 +50,7 @@ namespace penv {
                             static_cast<int>(n)};
         r = fcntl(fd_, F_RDADVISE, &advice);
 #endif
-        if (r == -1) {
+        if (r < 0) {
             throw IO_EXCEPTION(fname_);
         }
     }
