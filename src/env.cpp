@@ -33,8 +33,8 @@ namespace penv {
             fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
         }
 
-        void OpenSequentialFile(const std::string & fname,
-                                std::unique_ptr<SequentialFile> * result) override {
+        std::unique_ptr<SequentialFile>
+        OpenSequentialFile(const std::string & fname) override {
             int fd;
             int flags = O_RDONLY;
 
@@ -54,11 +54,11 @@ namespace penv {
                 close(fd);
                 throw IO_EXCEPTION(fname);
             }
-            *result = std::make_unique<PosixSequentialFile>(fname, file);
+            return std::make_unique<PosixSequentialFile>(fname, file);
         }
 
-        void OpenRandomAccessFie(const std::string & fname,
-                                 std::unique_ptr<RandomAccessFile> * result) override {
+        std::unique_ptr<RandomAccessFile>
+        OpenRandomAccessFie(const std::string & fname) override {
             int fd;
             int flags = O_RDONLY;
 
@@ -69,12 +69,11 @@ namespace penv {
                 throw IO_EXCEPTION(fname);
             }
             SetCLOEXEC(fd);
-            *result = std::make_unique<PosixRandomAccessFile>(fname, fd);
+            return std::make_unique<PosixRandomAccessFile>(fname, fd);
         }
 
-        static void OpenWritableFile(const std::string & fname,
-                                     std::unique_ptr<WritableFile> * result,
-                                     bool reopen) {
+        static std::unique_ptr<WritableFile>
+        OpenWritableFile(const std::string & fname, bool reopen) {
             int fd;
             int flags;
             size_t filesize;
@@ -93,22 +92,21 @@ namespace penv {
                 throw IO_EXCEPTION(fname);
             }
             SetCLOEXEC(fd);
-            *result = std::make_unique<PosixWritableFile>(fname, filesize, fd);
+            return std::make_unique<PosixWritableFile>(fname, filesize, fd);
         }
 
-        void OpenWritableFile(const std::string & fname,
-                              std::unique_ptr<WritableFile> * result) override {
-            return OpenWritableFile(fname, result, false);
+        std::unique_ptr<WritableFile>
+        OpenWritableFile(const std::string & fname) override {
+            return OpenWritableFile(fname, false);
         }
 
-        void ReopenWritableFile(const std::string & fname,
-                                std::unique_ptr<WritableFile> * result) override {
-            return OpenWritableFile(fname, result, true);
+        std::unique_ptr<WritableFile>
+        ReopenWritableFile(const std::string & fname) override {
+            return OpenWritableFile(fname, true);
         }
 
-        static void OpenMmapFile(const std::string & fname,
-                                 std::unique_ptr<MmapFile> * result,
-                                 bool reopen) {
+        static std::unique_ptr<MmapFile>
+        OpenMmapFile(const std::string & fname, bool reopen) {
             int fd;
             int flags;
             size_t len;
@@ -139,17 +137,17 @@ namespace penv {
             if (base == MAP_FAILED) {
                 throw IO_EXCEPTION(fname);
             }
-            *result = std::make_unique<PosixMmapFile>(fname, base, len, fd);
+            return std::make_unique<PosixMmapFile>(fname, base, len, fd);
         }
 
-        void OpenMmapFile(const std::string & fname,
-                          std::unique_ptr<MmapFile> * result) override {
-            return OpenMmapFile(fname, result, false);
+        std::unique_ptr<MmapFile>
+        OpenMmapFile(const std::string & fname) override {
+            return OpenMmapFile(fname, false);
         }
 
-        void ReopenMmapFile(const std::string & fname,
-                            std::unique_ptr<MmapFile> * result) override {
-            return OpenMmapFile(fname, result, true);
+        std::unique_ptr<MmapFile>
+        ReopenMmapFile(const std::string & fname) override {
+            return OpenMmapFile(fname, true);
         }
     };
 

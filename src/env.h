@@ -50,23 +50,23 @@ namespace penv {
             kPermission = 0644
         };
 
-        virtual void OpenSequentialFile(const std::string & fname,
-                                        std::unique_ptr<SequentialFile> * result) = 0;
+        virtual std::unique_ptr<SequentialFile>
+        OpenSequentialFile(const std::string & fname) = 0;
 
-        virtual void OpenRandomAccessFie(const std::string & fname,
-                                         std::unique_ptr<RandomAccessFile> * result) = 0;
+        virtual std::unique_ptr<RandomAccessFile>
+        OpenRandomAccessFie(const std::string & fname) = 0;
 
-        virtual void OpenWritableFile(const std::string & fname,
-                                      std::unique_ptr<WritableFile> * result) = 0;
+        virtual std::unique_ptr<WritableFile>
+        OpenWritableFile(const std::string & fname) = 0;
 
-        virtual void ReopenWritableFile(const std::string & fname,
-                                        std::unique_ptr<WritableFile> * result) = 0;
+        virtual std::unique_ptr<WritableFile>
+        ReopenWritableFile(const std::string & fname) = 0;
 
-        virtual void OpenMmapFile(const std::string & fname,
-                                  std::unique_ptr<MmapFile> * result) = 0;
+        virtual std::unique_ptr<MmapFile>
+        OpenMmapFile(const std::string & fname) = 0;
 
-        virtual void ReopenMmapFile(const std::string & fname,
-                                    std::unique_ptr<MmapFile> * result) = 0;
+        virtual std::unique_ptr<MmapFile>
+        ReopenMmapFile(const std::string & fname) = 0;
     };
 
     class SequentialFile {
