@@ -1,8 +1,10 @@
 #include <cerrno>
+#include <dirent.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <vector>
 
 #include "defs.h"
 #include "env.h"
@@ -19,12 +21,43 @@ namespace penv {
         ~PosixEnv() override = default;
 
     public:
+        bool FileExists(const std::string & fname) override {
+            return access(fname.c_str(), F_OK) == 0;
+        }
+
         size_t GetFileSize(const std::string & fname) override {
             struct stat sbuf;
             if (stat(fname.c_str(), &sbuf) != 0) {
                 throw IO_EXCEPTION(fname);
             } else {
                 return static_cast<size_t>(sbuf.st_size);
+            }
+        }
+
+        void DeleteFile(const std::string & fname) override {
+            if (unlink(fname.c_str()) != 0) {
+                throw IO_EXCEPTION(fname);
+            }
+        }
+
+        void GetChildren(const std::string & dirname,
+                         std::vector<std::string> * result) override {
+            result->clear();
+            DIR * d = opendir(dirname.c_str());
+            if (d == nullptr) {
+                throw IO_EXCEPTION(dirname);
+            }
+
+            struct dirent * entry;
+            while ((entry = readdir(d)) != nullptr) {
+                result->emplace_back(entry->d_name);
+            }
+            closedir(d);
+        }
+
+        void CreateDir(const std::string & dirname) override {
+            if (mkdir(dirname.c_str(), 0755 /* 权限 */) != 0) {
+                throw IO_EXCEPTION(dirname);
             }
         }
 

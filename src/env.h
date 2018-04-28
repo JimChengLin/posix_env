@@ -43,7 +43,16 @@ namespace penv {
     public:
         static Env * Default();
 
+        virtual bool FileExists(const std::string & fname) = 0;
+
         virtual size_t GetFileSize(const std::string & fname) = 0;
+
+        virtual void DeleteFile(const std::string & fname) = 0;
+
+        virtual void GetChildren(const std::string & dirname,
+                                 std::vector<std::string> * result) = 0;
+
+        virtual void CreateDir(const std::string & dirname) = 0;
 
     public:
         enum {
