@@ -50,6 +50,8 @@ namespace penv {
 
         virtual void DeleteFile(const std::string & fname) = 0;
 
+        virtual void DeleteAll(const std::string & dirname) = 0;
+
         virtual void GetChildren(const std::string & dirname,
                                  std::vector<std::string> * result) = 0;
 

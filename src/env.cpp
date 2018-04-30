@@ -1,6 +1,7 @@
 #include <cerrno>
 #include <dirent.h>
 #include <fcntl.h>
+#include <ftw.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -37,6 +38,16 @@ namespace penv {
         void DeleteFile(const std::string & fname) override {
             if (unlink(fname.c_str()) != 0) {
                 throw IO_EXCEPTION(fname);
+            }
+        }
+
+        // https://stackoverflow.com/questions/5467725/how-to-delete-a-directory-and-its-contents-in-posix-c
+        void DeleteAll(const std::string & dirname) override {
+            auto unlink_cb = [](const char * fpath, const struct stat * sbuf, int typeflag, struct FTW * ftwbuf) {
+                return remove(fpath);
+            };
+            if (nftw(dirname.c_str(), unlink_cb, 16, FTW_DEPTH | FTW_PHYS) != 0) {
+                throw IO_EXCEPTION(dirname);
             }
         }
 
