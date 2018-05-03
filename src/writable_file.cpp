@@ -12,7 +12,7 @@ namespace penv {
     PosixWritableFile::~PosixWritableFile() {
         if (last_preallocated_block_ > 0) {
             ftruncate(fd_, static_cast<off_t>(filesize_));
-#if defined(PENV_OS_LINUX)
+#if defined(PENV_OS_LINUX) && defined(FALLOC_FL_KEEP_SIZE) && defined(FALLOC_FL_PUNCH_HOLE)
             struct stat sbuf;
             int r = fstat(fd_, &sbuf);
             if (r == 0 &&
